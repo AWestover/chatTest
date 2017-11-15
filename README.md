@@ -27,6 +27,8 @@ git commit -m "sadf"
 heroku create
 
 
+heroku buildpacks:set heroku/nodejs
+
 git remote -v
 heroku 
 
@@ -36,7 +38,5 @@ https://fast-island-27810.herokuapp.com/ | https://git.heroku.com/fast-island-27
 git push heroku master
 
 heroku open
-
-
 
 
