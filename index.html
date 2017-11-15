@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>alek</title>
+  <title>Chatter</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-latest.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
@@ -10,6 +10,7 @@
   <style>
     body {
       margin-top: 30px;
+      margin-left: 30px;
     }
   </style>
 </head>
@@ -17,15 +18,8 @@
 <body>
   <div class="containter">
     <div class="row">
-      <div clas="col-md-4">
-        <div class="well">
-          <h3>Online Users</h3>
-          <ul class="lsit-group" id="users"></div>
-        </div>
-      </div>
       <div class="col-md-8">
-        <div class="chat" id="chat"></div>
-
+        
         <form id="messageForm">
           <div class="form-group">
             <label> Enter Message </label>
@@ -35,11 +29,10 @@
           </div>
         </form>
 
+        <div class="chat" id="chat"></div>
+
       </div>
     </div>
-
-  <p>alek</p>
-
   <script>
     $(function(){
       var socket = io.connect();
@@ -47,12 +40,9 @@
       var $message = $('#message');
       var $chat = $('#chat');
 
-
-
       $messageForm.submit(function(e){
         console.log(socket.id);
         e.preventDefault();
-
 
         var data = {
           msg: $message.val(),
@@ -61,13 +51,18 @@
 
         socket.emit('send message', data);
         $message.val('');
-        console.log("submitted"); 
+        console.log("submitted");
       });
 
       socket.on('new message', function(data){
         if (socket.id != data.msg.id)
         {
-          $chat.append('<div class="well">'+data.msg.msg+'</div>');
+          var css = "background: rgb(200, 0, 0); color: rgb(250, 250, 250); right:30%; width:50%;";
+          $chat.append('<div class="well" style="'+css+'">'+data.msg.msg+'</div>');
+        }
+        else {
+          var css = "background: rgb(250, 250, 250); color: rgb(200, 0, 0); left:50%; width:50%;";
+          $chat.append('<div class="well" style="'+css+'">'+data.msg.msg+'</div>');
         }
       });
 
