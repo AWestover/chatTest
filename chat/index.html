@@ -47,14 +47,28 @@
       var $message = $('#message');
       var $chat = $('#chat');
 
+
+
       $messageForm.submit(function(e){
+        console.log(socket.id);
         e.preventDefault();
-        socket.emit('send message', $message.val());
+
+
+        var data = {
+          msg: $message.val(),
+          id: socket.id
+        }
+
+        socket.emit('send message', data);
         $message.val('');
-        console.log("submitted");
+        console.log("submitted"); 
       });
+
       socket.on('new message', function(data){
-        $chat.append('<div class="well">'+data.msg+'</div>');
+        if (socket.id != data.msg.id)
+        {
+          $chat.append('<div class="well">'+data.msg.msg+'</div>');
+        }
       });
 
     });
