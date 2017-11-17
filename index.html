@@ -81,18 +81,23 @@
       });
 
       socket.on('new message', function(data){
-        var color = formatColor(colorHash(socket.id));
+        var color = formatColor(colorHash(data.msg.id));
         var inverseColor = formatColor(invertColor(color));
-
-        if (socket.id != data.msg.id)
-        {
-          var css = "background: rgb" + inverseColor + "; color: rgb" + color + "; right:30%; width:50%;";
-          $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
-        }
-        else {
-          var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; left:50%; width:50%;";
-          $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
-        }
+        var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; right:30%; width:50%;";
+        $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
+        // if (socket.id != data.msg.id)
+        // {
+        //   var color = formatColor(colorHash(data.msg.id));
+        //   var inverseColor = formatColor(invertColor(color));
+        //   var css = "background: rgb" + inverseColor + "; color: rgb" + color + "; right:30%; width:50%;";
+        //   $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
+        // }
+        // else {
+        //   var color = formatColor(colorHash(data.msg.id));
+        //   var inverseColor = formatColor(invertColor(color));
+        //   var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; left:50%; width:50%;";
+        //   $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
+        // }
       });
 
     });
