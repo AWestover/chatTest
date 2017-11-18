@@ -1,4 +1,3 @@
-//
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -20,21 +19,21 @@ app.get('/', function(req, res) {
 
 io.sockets.on('connection', function(socket){
   connections.push(socket);
-
-  console.log(socket.id);
+  io.sockets.emit('AConnect', {id: socket.id});
 
   console.log("Connected: %s sockets connected", connections.length);
 
   //disconect
   socket.on('disconnect', function(data) {
+    io.sockets.emit('ADisconnect', {id: socket.id});
     connections.splice(connections.indexOf(socket), 1);
     console.log("Connected: %s sockets connected", connections.length);
   });
 
-
   //send message
   socket.on('send message', function(data){
     io.sockets.emit('new message', {msg: data});
-  })
+  });
+
 
 });
