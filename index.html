@@ -19,7 +19,7 @@
   <div class="containter">
     <div class="row">
       <div class="col-md-8">
-        
+
         <div class="users" id="users"></div>
 
         <form id="messageForm">
@@ -54,7 +54,15 @@
 
     function invertColor(a_color)
     {
-      return [255 - a_color[0], 255 - a_color[1], 255 - a_color[2]];
+      if (a_color[0] + a_color[1] + a_color[2] > 255*3/2)
+      {
+        return [0, 0, 0];
+      }
+      else
+      {
+        return [255, 255, 255];
+      }
+
     }
 
     function formatColor(a_color)
@@ -83,8 +91,9 @@
       });
 
       socket.on('new message', function(data){
-        var color = formatColor(colorHash(data.msg.id));
+        var color = colorHash(data.msg.id);
         var inverseColor = formatColor(invertColor(color));
+        color = formatColor(color);
         var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; right:30%; width:50%;";
         $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
       });
