@@ -37,6 +37,8 @@
 
         <h3>Users</h3>
         <div class="users" id="users"></div>
+        <h3>User Names</h3>
+        <div class="userNames" id="userNames"></div>
 
         <form id="messageForm">
           <div class="form-group">
@@ -93,6 +95,8 @@
       var $message = $('#message');
       var $chat = $('#chat');
       var $users = $('#users');
+      var $userNames = $('#userNames');
+      var realUnms = [];
       var connections = [];
       var unm = null;
 
@@ -101,6 +105,7 @@
         unm = $('#namePlace').val();
         if (unm != "") {
           $nameInput.remove();
+          socket.emit('sendName', {name: unm});
         }
         else {
           unm = null;
@@ -146,7 +151,23 @@
         {
           $users.append('<div id=' + data.id + '>' + data.id + '</div>');
         }
+      });
 
+      socket.on('recieveName', function(data){
+        var alreadyIn = false;
+        for (var i = 0; i < realUnms.length; i++)
+        {
+          console.log(realUnms[i]);
+          if (realUnms[i] == data.msg.name)
+          {
+            alreadyIn = true;
+            break;
+          }
+        }
+        if (!alreadyIn) {
+          realUnms.push(data.msg.name);
+          $userNames.append('<div id=' + data.msg.name + '>' + data.msg.name + '</div>');
+        }
       });
 
     });

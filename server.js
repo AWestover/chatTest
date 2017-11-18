@@ -35,5 +35,14 @@ io.sockets.on('connection', function(socket){
     io.sockets.emit('new message', {msg: data});
   });
 
+  socket.on('sendName', function(data){
+    console.log(data.name);
+    users.push(data.name);
+    for (var i = 0; i < users.length; i++)
+    {
+      io.sockets.emit('recieveName', {msg: data});
+    }
+  });
+
 
 });
