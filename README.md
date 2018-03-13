@@ -42,6 +42,15 @@ heroku open
 
 
 
+# GOOD DOCS
+
+heroku has some good documentation too
+like this:
+
+(usefull if you want to get the remote to update it...)
+https://devcenter.heroku.com/articles/git
+
+
 
 # COOL CODE
 
