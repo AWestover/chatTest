@@ -26,6 +26,8 @@
     <div class="row">
       <div class="col-md-8">
 
+        <h3 id="yourName">Your Name</h3>
+
         <form id="nameInput">
           <div class="form-group">
             <label> Enter User Name </label>
@@ -40,6 +42,8 @@
         <h3>User Names</h3>
         <div class="userNames" id="userNames"></div>
 
+        <div class="chat" id="chat"></div>
+
         <form id="messageForm">
           <div class="form-group">
             <label> Enter Message </label>
@@ -49,11 +53,38 @@
           </div>
         </form>
 
-        <div class="chat" id="chat"></div>
-
       </div>
+
+      <input type="submit" class="btn btn-primary" value="Alert" onclick="alert('ALERT');">
     </div>
   <script>
+
+    function pwdHash(pwd)
+    {
+      var ans = 0;
+      for (var i = 0; i < pwd.length; i++)
+      {
+        ans = (ans + 3613*pwd.charCodeAt(i)) % 7919;
+      }
+      return ans;
+    }
+    /*
+    Admin privilages include
+    -flood someone (crash their browser but that is OK)
+    -change binary messup probability
+    */
+    function checkPwd(pwd)
+    {
+      var valid_pwds = [7426, 5798, 759];
+      for(var i = 0; i < pwd.length; i++)
+      {
+        if (pwdHash(pwd) == valid_pwds[i])
+        {
+          return true;
+        }
+      }
+      return false;  
+    }
 
     function colorHash(socketIDNum)
     {
@@ -67,25 +98,70 @@
       var b = (sketchySum * 33) % 251;
 
       return [r, g, b];
-
     }
 
     function invertColor(a_color)
     {
-      if (a_color[0] + a_color[1] + a_color[2] > 255*3/2)
+      if (a_color[0] + a_color[1] + a_color[2] > 255*3/2) 
       {
         return [0, 0, 0];
       }
-      else
+      else 
       {
         return [255, 255, 255];
       }
-
     }
 
     function formatColor(a_color)
     {
       return "(" + a_color[0] + ", " + a_color[1] + ", " + a_color[2] + ")";
+    }
+
+    function messWithBinaryData(bin_data, BINARY_MESSUP_PR)
+    {
+      var out = "";
+      for (var i = 0; i < bin_data.length; i++)
+      {
+        if (bin_data[i] == "0" || bin_data[i] == "1"){
+          if (Math.random() < BINARY_MESSUP_PR)
+          {
+            out += (1 + parseInt(bin_data[i]))%2;
+          }
+          else 
+          {
+            out += bin_data[i];
+          }
+        }
+        else
+        {
+          out += bin_data[i]; // NOT BINARY!!!!
+        }
+      }
+      return out;
+    }
+
+    function alreadyIn(val, vals)
+    {
+      for (var i = 0; i < vals.length; i++)
+      {
+        if (val == vals[i])
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function killCommand(command)
+    {
+      // ALSO needs to be KILL user 100 message
+      //(100 is number of reps, could make it much higher)
+      return command.indexOf("KILL") != -1;
+    }
+
+    function changeBinMessPr(command)
+    {
+      return command.indexOf("probability") != -1;
     }
 
     $(function(){
@@ -96,16 +172,29 @@
       var $chat = $('#chat');
       var $users = $('#users');
       var $userNames = $('#userNames');
+      var $yourName = $('#yourName');
       var realUnms = [];
       var connections = [];
       var unm = null;
+      var special = false;
 
       $nameInput.submit(function(e){
         e.preventDefault();
         unm = $('#namePlace').val();
-        if (unm != "") {
+        if (unm != "" && !alreadyIn(unm, realUnms) && unm != "ADMIN") {
           $nameInput.remove();
-          socket.emit('sendName', {name: unm});
+          $yourName.empty();
+          if (checkPwd(unm)) {
+            special = true;
+            socket.emit('sendName', {name: "ADMIN"});
+            $yourName.append('<h3 id="yourName">Supreme Leader</h3>');
+            unm = "ADMIN";
+          }
+          else {
+            console.log(pwdHash(unm));
+            socket.emit('sendName', {name: unm});
+            $yourName.append('<h3 id="yourName">' + unm + '</h3>');
+          }
         }
         else {
           unm = null;
@@ -117,11 +206,37 @@
         e.preventDefault();
         var data = {
           msg: $message.val(),
-          id: socket.id
+          id: socket.id,
+          name: unm
         }
         if (unm != null)
         {
-          socket.emit('send message', data);
+          if (killCommand(data.msg) && special)
+          {
+            var splitMsg = data.msg.split(" ");
+            data.victim = splitMsg[1];
+            data.reps = parseInt(splitMsg[2]);
+            if (splitMsg.length > 3)
+            {
+              data.msg = "";
+              for (var i = 3; i < splitMsg.length; i++)
+              {
+                data.msg = data.msg + " " + splitMsg[i];
+              }
+            }
+            socket.emit('KILL', data);
+          }
+          else if (changeBinMessPr(data.msg) && special)
+          {
+            var data = {
+              newVal: parseFloat(data.msg.split(" ")[1])
+            }
+            socket.emit('ChangePr', data);
+          }
+          else
+          {
+            socket.emit('send message', data);
+          }
           $message.val('');
         }
         else {
@@ -134,7 +249,17 @@
         var inverseColor = formatColor(invertColor(color));
         color = formatColor(color);
         var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; right:30%; width:50%;";
-        $chat.append('<div class="well" style="' + css + '">' + data.msg.msg + '</div>');
+        socket.BINARY_MESSUP_PR = data.bmp;
+        if (data.msg.id == socket.id)
+        {
+          var corrupted_message = messWithBinaryData(data.msg.msg, 0);  
+        }
+        else {
+        var corrupted_message = messWithBinaryData(data.msg.msg, socket.BINARY_MESSUP_PR);
+        }
+        corrupted_message += " (" + data.msg.name + ")";
+        $chat.append('<div class="well" style="' + css + '">' + corrupted_message + '</div>');
+        window.scrollTo(0,document.body.scrollHeight);
       });
 
       socket.on('AConnect', function(data){
@@ -168,6 +293,41 @@
           realUnms.push(data.msg.name);
           $userNames.append('<div id=' + data.msg.name + '>' + data.msg.name + '</div>');
         }
+      });
+
+
+      socket.on('ConnectInfo', function(data) {
+        if (data.id == socket.id && data.id != data.conn)
+        {
+          if (data.name != null)
+          {
+            realUnms.push(data.name);
+            $userNames.append('<div id=' + data.name + '>' + data.name + '</div>');
+          }
+          connections.push(data.conn);
+          $users.append('<div id=' + data.conn + '>' + data.conn + '</div>');
+        }
+      });
+
+      socket.on('DIE', function(data) {
+        if (unm == data.victim)
+        {
+          var reps = data.reps;
+          for (var i = 0; i < reps; i++)
+          {
+            var color = [0,0,0];
+            var inverseColor = formatColor(invertColor(color));
+            color = formatColor(color);
+            var css = "background: rgb" + color + "; color: rgb" + inverseColor + "; right:30%; width:50%;";
+            $chat.append('<div class="well" style="' + css + '">' + (data.msg+" #"+i) + '</div>');
+
+            window.scrollTo(0,document.body.scrollHeight);
+          }
+        }
+      });
+
+      socket.on('ChangePr', function(data){
+        socket.BINARY_MESSUP_PR = data.newVal;
       });
 
     });

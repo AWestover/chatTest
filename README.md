@@ -40,3 +40,10 @@ git push heroku master
 heroku open
 
 
+
+
+
+#COOL CODE
+
+window.scrollTo(0,document.body.scrollHeight);
+scroll to the bottom of the screen!!!

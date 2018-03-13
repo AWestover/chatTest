@@ -3,13 +3,14 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
+var BINARY_MESSUP_PR=0.04;
+
 var users = [];
 var connections = [];
 
 var port = process.env.PORT || 3000;
 
 server.listen(port);
-
 console.log("server.js is running");
 
 app.get('/', function(req, res) {
@@ -20,6 +21,24 @@ app.get('/', function(req, res) {
 io.sockets.on('connection', function(socket){
   connections.push(socket);
   io.sockets.emit('AConnect', {id: socket.id});
+
+  socket.BINARY_MESSUP_PR = BINARY_MESSUP_PR;
+
+  for (var i = 0; i < connections.length; i++)
+  {
+  	var unmc = null;
+  	if (i < users.length)
+  	{
+  		unmc = users[i];
+  	}
+  	var data = {
+  		id: socket.id,
+  		name: unmc,
+  		conn: connections[i].id
+  	}
+  	console.log(data);
+  	io.sockets.emit('ConnectInfo', data);
+  }
 
   console.log("Connected: %s sockets connected", connections.length);
 
@@ -32,11 +51,11 @@ io.sockets.on('connection', function(socket){
 
   //send message
   socket.on('send message', function(data){
-    io.sockets.emit('new message', {msg: data});
+  	socket.BINARY_MESSUP_PR = BINARY_MESSUP_PR;
+    io.sockets.emit('new message', {msg: data, bmp: BINARY_MESSUP_PR});
   });
 
   socket.on('sendName', function(data){
-    console.log(data.name);
     users.push(data.name);
     for (var i = 0; i < users.length; i++)
     {
@@ -44,5 +63,13 @@ io.sockets.on('connection', function(socket){
     }
   });
 
+  socket.on('ChangePr', function(data){
+  	BINARY_MESSUP_PR = data.newVal;
+  	io.sockets.emit('ChangePr', data);
+  });
+
+  socket.on('KILL',function(data){
+  	io.sockets.emit('DIE', data);
+  });
 
 });

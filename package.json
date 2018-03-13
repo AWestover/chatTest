@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "My first trial attempt at creating a server with node",
   "engines": {
-     "node": "6.10.3"
+    "node": "6.10.3"
   },
   "main": "server.js",
   "scripts": {
@@ -22,5 +22,13 @@
   "dependencies": {
     "express": "^4.15.3",
     "socket.io": "^2.0.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AWestover/chatTest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AWestover/chatTest/issues"
+  },
+  "homepage": "https://github.com/AWestover/chatTest#readme"
 }
